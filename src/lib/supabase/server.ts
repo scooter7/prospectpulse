@@ -2,9 +2,19 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 export async function createClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // During build prerendering env vars may not exist. Return a no-op proxy
+  // so static generation doesn't crash.
+  if (!url || !key) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new Proxy({} as any, {
+      get: () => () => new Proxy({} as any, { get: () => () => ({ data: null, error: null }) }),
+    }) as ReturnType<typeof createServerClient>;
+  }
+
   const cookieStore = await cookies();
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
 
   return createServerClient(url, key, {
     cookies: {
@@ -25,9 +35,16 @@ export async function createClient() {
 }
 
 export async function createServiceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceKey) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new Proxy({} as any, {
+      get: () => () => new Proxy({} as any, { get: () => () => ({ data: null, error: null }) }),
+    }) as ReturnType<typeof import('@supabase/supabase-js').createClient>;
+  }
+
   const { createClient } = await import('@supabase/supabase-js');
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key'
-  );
+  return createClient(url, serviceKey);
 }
