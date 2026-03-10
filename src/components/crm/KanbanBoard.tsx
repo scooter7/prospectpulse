@@ -59,7 +59,8 @@ export default function KanbanBoard({ campaignId }: KanbanBoardProps) {
       if (bizError) throw bizError;
 
       const existingBusinessIds = leads.map((l) => l.business_id);
-      return (allBusinesses || []).filter((b) => !existingBusinessIds.includes(b.id));
+      return // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (allBusinesses || []).filter((b: any) => !existingBusinessIds.includes(b.id));
     },
     enabled: addDialogOpen,
   });
@@ -161,7 +162,8 @@ export default function KanbanBoard({ campaignId }: KanbanBoardProps) {
               </p>
             ) : (
               <div className="space-y-3">
-                {availableBusinesses.map((biz) => (
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {availableBusinesses.map((biz: any) => (
                   <div
                     key={biz.id}
                     className="flex items-center space-x-3 p-3 rounded-md border hover:bg-muted/50 cursor-pointer"

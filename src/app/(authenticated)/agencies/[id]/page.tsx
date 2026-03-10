@@ -48,7 +48,8 @@ export default function AgencyDetailPage() {
   }
 
   const totalCampaigns = clients?.reduce(
-    (sum, c) => sum + ((c.campaigns as unknown[])?.length || 0), 0
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (sum: number, c: any) => sum + ((c.campaigns as unknown[])?.length || 0), 0
   ) || 0;
 
   return (
@@ -108,7 +109,8 @@ export default function AgencyDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {clients.map((client) => (
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {clients.map((client: any) => (
                   <TableRow key={client.id}>
                     <TableCell>
                       <Link

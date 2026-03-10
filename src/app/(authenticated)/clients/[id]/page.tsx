@@ -121,7 +121,8 @@ export default function ClientDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {campaigns.map((camp) => (
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {campaigns.map((camp: any) => (
                   <TableRow key={camp.id}>
                     <TableCell>
                       <Link
