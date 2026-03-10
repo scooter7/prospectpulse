@@ -1,9 +1,9 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/lib/types';
-import type { User } from '@supabase/supabase-js';
+import type { User, SupabaseClient } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
@@ -23,20 +23,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const supabaseRef = useRef<SupabaseClient | null>(null);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+    const supabase = createClient();
+    supabaseRef.current = supabase;
 
-      if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setProfile(data);
+    const getSession = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+
+        if (user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          setProfile(data);
+        }
+      } catch {
+        // Auth check failed (e.g. no env vars configured)
       }
       setLoading(false);
     };
@@ -61,10 +68,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, [supabase]);
+  }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (supabaseRef.current) {
+      await supabaseRef.current.auth.signOut();
+    }
     setUser(null);
     setProfile(null);
   };
